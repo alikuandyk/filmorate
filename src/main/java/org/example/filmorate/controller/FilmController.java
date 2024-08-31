@@ -1,44 +1,63 @@
 package org.example.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
 public class FilmController {
-    List<Film> films = new ArrayList<>();
+    Map<Integer, Film> films = new HashMap<>();
 
-    @PostMapping
+    @PostMapping("/film")
     public Film addFilm(@Valid @RequestBody Film film) {
-        films.add(film);
+        validateFilm(film);
+        films.put(film.getId(), film);
         log.info("Добавлен новый фильм: {}", film);
         return film;
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/user/{id}")
     public Film updateFilm(@PathVariable int id, @Valid @RequestBody Film updatedFilm) {
-        for (Film film : films) {
-            if (film.getId() == id) {
-                film.setTitle(updatedFilm.getTitle());
-                film.setDescription(updatedFilm.getDescription());
-                film.setReleaseDate(updatedFilm.getReleaseDate());
-                film.setDuration(updatedFilm.getDuration());
+        validateFilm(updatedFilm);
+        for (Map.Entry<Integer, Film> entry : films.entrySet()) {
+            if (entry.getValue().getId() == id) {
+                entry.getValue().setTitle(updatedFilm.getTitle());
+                entry.getValue().setDescription(updatedFilm.getDescription());
+                entry.getValue().setReleaseDate(updatedFilm.getReleaseDate());
+                entry.getValue().setDuration(updatedFilm.getDuration());
+
                 log.info("Фильм с id {} обновлен: {}", id, updatedFilm);
-                return film;
+                return entry.getValue();
             }
         }
         String errorMsg = "Фильм с ID " + id + " не найден.";
-        log.error(errorMsg);
-        return null;
+        log.warn(errorMsg);
+        throw new ValidationException("Фильм с указанным ID не найден.");
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public List<Film> getAllFilms() {
-        return films;
+        List<Film> filmList = new ArrayList<>();
+
+        for (Map.Entry<Integer, Film> entry : films.entrySet()) {
+            filmList.add(entry.getValue());
+        }
+
+        return filmList;
+    }
+
+    private void validateFilm(Film film) {
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28).atStartOfDay())) {
+            throw new ValidationException("Дата релиза не должна быть раньше 28 декабря 1895 года.");
+        }
     }
 }

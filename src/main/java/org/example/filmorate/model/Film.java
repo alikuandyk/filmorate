@@ -16,7 +16,6 @@ public class Film {
 
     private int id;
 
-    @NotNull(message = "Название не может быть null")
     @NotBlank(message = "Название не может быть пустым")
     private String title;
 

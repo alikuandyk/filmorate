@@ -1,47 +1,65 @@
 package org.example.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
 public class UserController {
-    List<User> users = new ArrayList<>();
+    Map<Integer, User> users = new HashMap<>();
 
-    @PostMapping
+    @PostMapping("/user")
     public User createUser(@Valid @RequestBody User user) {
+        validateUser(user);
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
-        users.add(user);
+        users.put(user.getId(), user);
         log.info("Создан новый пользователь: {}", user);
         return user;
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/user/{id}")
     public User updateUser(@PathVariable int id, @Valid @RequestBody User updatedUser) {
-        for (User user : users) {
-            if (user.getId() == id) {
-                user.setEmail(updatedUser.getEmail());
-                user.setLogin(updatedUser.getLogin());
-                user.setName(updatedUser.getName());
-                user.setBirthday(updatedUser.getBirthday());
+        validateUser(updatedUser);
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+            if (entry.getValue().getId() == id) {
+                entry.getValue().setEmail(updatedUser.getEmail());
+                entry.getValue().setLogin(updatedUser.getLogin());
+                entry.getValue().setName(updatedUser.getName());
+                entry.getValue().setBirthday(updatedUser.getBirthday());
                 log.info("Пользователь с ID {} обновлен: {}", id, updatedUser);
-                return user;
+                return entry.getValue();
             }
         }
         String errorMsg = "Пользователь с ID " + id + " не найден.";
-        log.error(errorMsg);
-        return null;
+        log.warn(errorMsg);
+        throw new ValidationException("Пользователь с указанным ID не найден.");
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public List<User> getAllUsers() {
-        return users;
+        ArrayList<User> userArrayList = new ArrayList<>();
+
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+            userArrayList.add(entry.getValue());
+        }
+
+        return userArrayList;
+    }
+
+    private void validateUser(User user) {
+        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now().atStartOfDay())) {
+            throw new ValidationException("Дата рождения не может быть в будущем.");
+        }
     }
 }
