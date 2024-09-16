@@ -1,65 +1,45 @@
 package org.example.filmorate.controller;
 
-import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.User;
+import org.example.filmorate.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Slf4j
 public class UserController {
-    Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
 
-    @PostMapping("/user")
-    public User createUser(@Valid @RequestBody User user) {
-        validateUser(user);
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-        users.put(user.getId(), user);
-        log.info("Создан новый пользователь: {}", user);
-        return user;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @PutMapping("/user/{id}")
-    public User updateUser(@PathVariable int id, @Valid @RequestBody User updatedUser) {
-        validateUser(updatedUser);
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-            if (entry.getValue().getId() == id) {
-                entry.getValue().setEmail(updatedUser.getEmail());
-                entry.getValue().setLogin(updatedUser.getLogin());
-                entry.getValue().setName(updatedUser.getName());
-                entry.getValue().setBirthday(updatedUser.getBirthday());
-                log.info("Пользователь с ID {} обновлен: {}", id, updatedUser);
-                return entry.getValue();
-            }
-        }
-        String errorMsg = "Пользователь с ID " + id + " не найден.";
-        log.warn(errorMsg);
-        throw new ValidationException("Пользователь с указанным ID не найден.");
+    @GetMapping("/users/{id}/friends")
+    public Collection<User> getFriends(@PathVariable int id) {
+        return null;
     }
 
-    @GetMapping("/users")
-    public List<User> getAllUsers() {
-        ArrayList<User> userArrayList = new ArrayList<>();
-
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-            userArrayList.add(entry.getValue());
-        }
-
-        return userArrayList;
+    @GetMapping("/users/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userService.getUserById(id);
     }
 
-    private void validateUser(User user) {
-        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now().atStartOfDay())) {
-            throw new ValidationException("Дата рождения не может быть в будущем.");
-        }
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        return userService.getCommonFriends(id, otherId);
+    }
+
+    @DeleteMapping("/users/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @PutMapping("/users/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+        userService.addFriend(id, friendId);
     }
 }

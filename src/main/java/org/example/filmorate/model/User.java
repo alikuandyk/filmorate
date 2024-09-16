@@ -3,11 +3,12 @@ package org.example.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -27,5 +28,7 @@ public class User {
     private String name;
 
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
-    private LocalDateTime birthday;
+    private LocalDate birthday;
+
+    private Set<Integer> friends = new HashSet<>();
 }
