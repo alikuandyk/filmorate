@@ -1,11 +1,11 @@
 package org.example.filmorate.service;
 
+import jakarta.validation.ValidationException;
 import org.example.filmorate.model.User;
 import org.example.filmorate.storage.UserStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,12 +20,27 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public Collection<User> getAllFriendsById() {
-        return userStorage.getAllUsers();
-    }
-
     public User getUserById(int id) {
         return userStorage.getUserById(id);
+    }
+
+    public void addUser(User user) {
+        userStorage.addUser(user);
+    }
+
+    public void updateUser(User user) {
+        if (!userStorage.getAllUsers().stream().anyMatch(u -> u.getId() == user.getId())) {
+            throw new ValidationException("Пользователь с указанным ID не найден");
+        }
+        userStorage.updateUser(user);
+    }
+
+    public void deleteUser(int id) {
+        userStorage.deleteUser(id);
+    }
+
+    public List<User> getAllUsers() {
+        return userStorage.getAllUsers();
     }
 
     public void addFriend(int userId, int friendId) {
@@ -36,6 +51,12 @@ public class UserService {
         friend.getFriends().add(userId);
         userStorage.updateUser(user);
         userStorage.updateUser(friend);
+    }
+
+    public List<User> getAllFriendsById(int id) {
+        return userStorage.getUserById(id).getFriends().stream()
+                .map(friendId -> userStorage.getUserById(friendId))
+                .collect(Collectors.toList());
     }
 
     public void deleteFriend(int userId, int friendId) {

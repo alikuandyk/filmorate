@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -28,6 +26,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User updateUser(User user) {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
+            log.info("Обновлен пользователь: {}", user);
             return user;
         } else {
             log.warn("Пользователь с ID " + user.getId() + " не найден");
@@ -56,7 +55,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getAllUsers() {
-        return users.values();
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users.values());
     }
 }
