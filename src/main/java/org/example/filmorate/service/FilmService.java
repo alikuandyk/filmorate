@@ -3,7 +3,8 @@ package org.example.filmorate.service;
 import jakarta.validation.ValidationException;
 import org.example.filmorate.model.Film;
 import org.example.filmorate.storage.FilmStorage;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.filmorate.storage.UserStorage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,10 +14,11 @@ import java.util.List;
 public class FilmService {
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
-    @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     public void addFilm(Film film) {
@@ -42,22 +44,24 @@ public class FilmService {
     }
 
     public void addLike(int filmId, int userId) {
+        userStorage.getUserById(userId);
+        filmStorage.addLike(filmId, userId);
+
         Film film = filmStorage.getFilmById(filmId);
         film.getLikes().add(userId);
-        filmStorage.updateFilm(film);
     }
 
     public void deleteLike(int filmId, int userId) {
+        userStorage.getUserById(userId);
+
         Film film = filmStorage.getFilmById(filmId);
         film.getLikes().remove(userId);
         filmStorage.updateFilm(film);
     }
 
     public List<Film> getMostPopulatFilms(int count) {
-        List<Film> films = filmStorage.getAllFilms();
-        films.sort((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()));
-
-        return films.subList(0, Math.min(count, films.size()));
+        List<Film> films = filmStorage.getMostPopularFilms(count);
+        return films;
     }
 
     private void validateFilm(Film film) {

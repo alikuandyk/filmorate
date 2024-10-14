@@ -2,6 +2,7 @@ package org.example.filmorate.storage;
 
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.example.filmorate.exception.EntityNotFoundException;
 import org.example.filmorate.model.Film;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             return film;
         } else {
             log.warn("Фильм с ID " + film.getId() + " не найден");
-            throw new ValidationException("Фильм с указанным ID не найден");
+            throw new EntityNotFoundException("Фильм с указанным ID не найден");
         }
     }
 
@@ -44,7 +45,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             films.remove(id);
         } else {
             log.warn("Фильм с ID " + id + " не найден");
-            throw new ValidationException("Фильм с указанным ID не найден");
+            throw new EntityNotFoundException("Фильм с указанным ID не найден");
         }
     }
 
@@ -54,13 +55,23 @@ public class InMemoryFilmStorage implements FilmStorage {
             return films.get(id);
         } else {
             log.warn("Фильм с ID " + id + " не найден");
-            throw new ValidationException("Фильм с указанным ID не найден");
+            throw new EntityNotFoundException("Фильм с указанным ID не найден");
         }
     }
 
     @Override
     public List<Film> getAllFilms() {
         return new ArrayList<>(films.values());
+    }
+
+    @Override
+    public List<Film> getMostPopularFilms(int count) {
+        return null;
+    }
+
+    @Override
+    public void addLike(int filmId, int userId) {
+
     }
 
     private void validateFilm(Film film) {

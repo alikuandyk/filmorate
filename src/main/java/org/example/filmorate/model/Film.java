@@ -4,8 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -13,7 +13,6 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@Builder
 public class Film {
 
     private int id;
@@ -31,5 +30,9 @@ public class Film {
     @Positive(message = "Продолжительность фильма должен быть положительным")
     private int duration;
 
-    private Set<Integer> likes = new HashSet<>();
+    private Mpa mpa;
+
+    private final Set<Genre> genres = new LinkedHashSet<>();
+
+    private final Set<Integer> likes = new HashSet<>();
 }

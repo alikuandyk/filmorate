@@ -3,8 +3,6 @@ package org.example.filmorate.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.User;
 import org.example.filmorate.service.UserService;
@@ -27,6 +25,7 @@ public class UserController {
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         userService.addUser(user);
+        log.info("POST /users");
         return new ResponseEntity<>(user, HttpStatus.CREATED).getBody();
     }
 
@@ -48,6 +47,7 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
+        log.info("GET /users/{}/friends", id);
         return userService.getAllFriendsById(id);
     }
 
@@ -69,16 +69,6 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
         userService.addFriend(id, friendId);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        log.info("PUT /users/{}/friends/{}", id, friendId);
     }
 }

@@ -1,7 +1,7 @@
 package org.example.filmorate.storage;
 
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.example.filmorate.exception.EntityNotFoundException;
 import org.example.filmorate.model.User;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ public class InMemoryUserStorage implements UserStorage {
     private int uniqueId = 1;
 
     @Override
-    public User addUser(User user) {
+    public User createUser(User user) {
         user.setId(uniqueId++);
         users.put(user.getId(), user);
 
@@ -30,7 +30,7 @@ public class InMemoryUserStorage implements UserStorage {
             return user;
         } else {
             log.warn("Пользователь с ID " + user.getId() + " не найден");
-            throw new ValidationException("Пользователь с указанным ID не найден");
+            throw new EntityNotFoundException("Пользователь с указанным ID не найден");
         }
     }
 
@@ -40,7 +40,7 @@ public class InMemoryUserStorage implements UserStorage {
             users.remove(id);
         } else {
             log.warn("Пользователь с ID " + id + " не найден");
-            throw new ValidationException("Пользователь с указанным ID не найден");
+            throw new EntityNotFoundException("Пользователь с указанным ID не найден");
         }
     }
 
@@ -50,12 +50,27 @@ public class InMemoryUserStorage implements UserStorage {
             return users.get(id);
         } else {
             log.warn("Пользователь с ID " + id + " не найден");
-            throw new ValidationException("Пользователь с указанным ID не найден");
+            throw new EntityNotFoundException("Пользователь с указанным ID не найден");
         }
     }
 
     @Override
     public List<User> getAllUsers() {
         return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public User addFriend(int userId, int friendId) {
+        return null;
+    }
+
+    @Override
+    public List<User> getFriendsById(int userId) {
+        return null;
+    }
+
+    @Override
+    public void deleteFriend(int userId, int friendId) {
+
     }
 }

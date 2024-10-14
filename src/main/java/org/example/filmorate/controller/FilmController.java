@@ -1,15 +1,12 @@
 package org.example.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.filmorate.model.Film;
 import org.example.filmorate.service.FilmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -33,7 +30,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @PathVariable Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         filmService.updateFilm(film);
         log.info("Обновлен фильм: {}", film);
         return film;
@@ -44,8 +41,8 @@ public class FilmController {
         return filmService.getAllFilms();
     }
 
-    @GetMapping("/popular?count={count}")
-    public List<Film> getMostPopularFilms(@PathVariable int count) {
+    @GetMapping("/popular")
+    public List<Film> getMostPopularFilms(@RequestParam int count) {
         return filmService.getMostPopulatFilms(count);
     }
 
@@ -67,21 +64,6 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
         filmService.addLike(id, userId);
-    }
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleValidationException(ValidationException ex) {
-        log.warn("Ошибка валидации: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        log.info("добавился лайк");
     }
 }
