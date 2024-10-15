@@ -27,7 +27,9 @@ public class MpaDbStorage implements MpaStorage {
 
     @Override
     public Optional<Mpa> findById(int id) {
-        return jdbcTemplate.queryForStream("select * from mpa where mpa.id = ?", this::rowMapper, id).findFirst();
+        return jdbcTemplate.query("select * from mpa where mpa.id = ?", this::rowMapper, id)
+                .stream()
+                .findFirst();
     }
 
     public Mpa rowMapper(ResultSet rs, int rowNum) throws SQLException {

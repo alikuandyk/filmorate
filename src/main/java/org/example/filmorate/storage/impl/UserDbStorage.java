@@ -4,7 +4,6 @@ import org.example.filmorate.exception.EntityNotFoundException;
 import org.example.filmorate.model.User;
 import org.example.filmorate.storage.UserStorage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
@@ -59,7 +58,11 @@ public class UserDbStorage implements UserStorage {
     public User getUserById(int id) {
         String sql = "SELECT * FROM users WHERE users.id = ?";
 
-        return jdbcTemplate.queryForStream(sql, this::rowMapper, id).findFirst().orElseThrow(() -> new EntityNotFoundException("Пользователь с ID " + id + " не найден"));
+        return jdbcTemplate.query(sql, this::rowMapper, id)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с ID " + id + " не найден"));
+
     }
 
     @Override
@@ -95,11 +98,26 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteFriend(int userId, int friendId) {
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
+
         String sql = """
                 delete from friendships where user1_id = ? and user2_id = ?
                 """;
 
         jdbcTemplate.update(sql, userId, friendId);
+    }
+
+    @Override
+    public List<User> getCommonFriends(int id, int otherId) {
+        String sql = """
+                SELECT u.id, u.email, u.login, u.name, u.birthday
+                FROM users u
+                JOIN friendships f1 ON u.id = f1.user2_id
+                JOIN friendships f2 ON u.id = f2.user2_id
+                WHERE f1.user1_id = ? AND f2.user1_id = ?""";
+
+        return jdbcTemplate.query(sql, this::rowMapper, id, otherId);
     }
 
     public User rowMapper (ResultSet rs, int rowNum) throws SQLException {

@@ -1,6 +1,5 @@
 package org.example.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.util.Objects;

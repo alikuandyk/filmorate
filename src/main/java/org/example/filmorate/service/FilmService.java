@@ -36,7 +36,7 @@ public class FilmService {
     }
 
     public Film getFilmById(int filmId) {
-        return filmStorage.getFilmById(filmId);
+        return filmStorage.getFilmWithGenresById(filmId);
     }
 
     public List<Film> getAllFilms() {

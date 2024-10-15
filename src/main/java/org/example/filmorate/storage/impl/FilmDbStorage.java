@@ -3,8 +3,10 @@ package org.example.filmorate.storage.impl;
 import jakarta.validation.ValidationException;
 import org.example.filmorate.exception.EntityNotFoundException;
 import org.example.filmorate.model.Film;
+import org.example.filmorate.model.Genre;
 import org.example.filmorate.model.Mpa;
 import org.example.filmorate.storage.FilmStorage;
+import org.example.filmorate.storage.GenreStorage;
 import org.example.filmorate.storage.MpaStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,13 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
     private static final String SELECT = """
             select films.id,
@@ -36,9 +38,10 @@ public class FilmDbStorage implements FilmStorage {
             on films.mpa_id = mpa.id""";
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaStorage mpaStorage) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaStorage mpaStorage, GenreStorage genreStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaStorage = mpaStorage;
+        this.genreStorage = genreStorage;
     }
 
     @Override
@@ -85,11 +88,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(int id) {
-        return jdbcTemplate.queryForObject(SELECT + " where films.id = ?", this::rowMapper, id);
-    }
-
-    @Override
     public List<Film> getAllFilms() {
         return jdbcTemplate.query(SELECT, this::rowMapper);
     }
@@ -114,6 +112,22 @@ public class FilmDbStorage implements FilmStorage {
                 """;
 
         return jdbcTemplate.query(sql, this::rowMapper, count);
+    }
+
+    @Override
+    public Film getFilmById(int id) {
+        return jdbcTemplate.queryForObject(SELECT + " where films.id = ?", this::rowMapper, id);
+    }
+
+    @Override
+    public Film getFilmWithGenresById(int id) {
+        Film film = getFilmById(id);
+        if (film != null) {
+            List<Genre> genres = genreStorage.getGenresByFilmId(id);
+            film.getGenres().addAll(genres);
+            return film;
+        }
+        return null;
     }
 
     public Film rowMapper(ResultSet rs, int rowNum) throws SQLException {
